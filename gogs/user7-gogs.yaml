@@ -1,0 +1,445 @@
+apiVersion: template.openshift.io/v1
+kind: Template
+metadata:
+  creationTimestamp: null
+  name: user7-gogs
+objects:
+- apiVersion: apps.openshift.io/v1
+  kind: DeploymentConfig
+  metadata:
+    annotations:
+      openshift.io/generated-by: OpenShiftWebConsole
+    creationTimestamp: null
+    generation: 7
+    labels:
+      app: gogs
+    name: gogs
+  spec:
+    replicas: 1
+    selector:
+      app: gogs
+      deploymentconfig: gogs
+    strategy:
+      activeDeadlineSeconds: 21600
+      resources: {}
+      rollingParams:
+        intervalSeconds: 1
+        maxSurge: 25%
+        maxUnavailable: 25%
+        timeoutSeconds: 600
+        updatePeriodSeconds: 1
+      type: Rolling
+    template:
+      metadata:
+        annotations:
+          openshift.io/generated-by: OpenShiftWebConsole
+        creationTimestamp: null
+        labels:
+          app: gogs
+          deploymentconfig: gogs
+      spec:
+        containers:
+        - image: wkulhanek/gogs@sha256:8bcc1cb6f938388b288ba1f9cfe1f2fb7f0cd2297c7b4cdd2d88c2224bb99f4d
+          imagePullPolicy: IfNotPresent
+          name: gogs
+          ports:
+          - containerPort: 3000
+            protocol: TCP
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          volumeMounts:
+          - mountPath: /data
+            name: volume-nn5ft
+          - mountPath: /opt/gogs/custom/conf
+            name: app-ini-88qxq
+            readOnly: true
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        terminationGracePeriodSeconds: 30
+        volumes:
+        - name: volume-nn5ft
+          persistentVolumeClaim:
+            claimName: gogs-storage
+        - configMap:
+            defaultMode: 420
+            name: app-ini
+          name: app-ini-88qxq
+    test: false
+    triggers:
+    - type: ConfigChange
+    - imageChangeParams:
+        automatic: true
+        containerNames:
+        - gogs
+        from:
+          kind: ImageStreamTag
+          name: gogs:11.34
+          namespace: user7-gogs
+        lastTriggeredImage: wkulhanek/gogs@sha256:8bcc1cb6f938388b288ba1f9cfe1f2fb7f0cd2297c7b4cdd2d88c2224bb99f4d
+      type: ImageChange
+  status:
+    availableReplicas: 0
+    latestVersion: 0
+    observedGeneration: 0
+    replicas: 0
+    unavailableReplicas: 0
+    updatedReplicas: 0
+- apiVersion: apps.openshift.io/v1
+  kind: DeploymentConfig
+  metadata:
+    annotations:
+      template.alpha.openshift.io/wait-for-ready: "true"
+    creationTimestamp: null
+    generation: 2
+    labels:
+      template: postgresql-persistent-template
+      template.openshift.io/template-instance-owner: 1239d9c3-dc77-11e8-8a2b-06653b9385be
+    name: postgresql
+  spec:
+    replicas: 1
+    revisionHistoryLimit: 10
+    selector:
+      name: postgresql
+    strategy:
+      activeDeadlineSeconds: 21600
+      recreateParams:
+        timeoutSeconds: 600
+      resources: {}
+      type: Recreate
+    template:
+      metadata:
+        creationTimestamp: null
+        labels:
+          name: postgresql
+      spec:
+        containers:
+        - env:
+          - name: POSTGRESQL_USER
+            valueFrom:
+              secretKeyRef:
+                key: database-user
+                name: postgresql
+          - name: POSTGRESQL_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                key: database-password
+                name: postgresql
+          - name: POSTGRESQL_DATABASE
+            valueFrom:
+              secretKeyRef:
+                key: database-name
+                name: postgresql
+          image: docker-registry.default.svc:5000/openshift/postgresql@sha256:0ffb77a9a3e5cb848ccc07d5a5384839a911e7eeb36988c6a4b51a389f62415a
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            exec:
+              command:
+              - /usr/libexec/check-container
+              - --live
+            failureThreshold: 3
+            initialDelaySeconds: 120
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 10
+          name: postgresql
+          ports:
+          - containerPort: 5432
+            protocol: TCP
+          readinessProbe:
+            exec:
+              command:
+              - /usr/libexec/check-container
+            failureThreshold: 3
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
+          resources:
+            limits:
+              memory: 512Mi
+          securityContext:
+            capabilities: {}
+            privileged: false
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          volumeMounts:
+          - mountPath: /var/lib/pgsql/data
+            name: postgresql-data
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        terminationGracePeriodSeconds: 30
+        volumes:
+        - name: postgresql-data
+          persistentVolumeClaim:
+            claimName: postgresql
+    test: false
+    triggers:
+    - imageChangeParams:
+        automatic: true
+        containerNames:
+        - postgresql
+        from:
+          kind: ImageStreamTag
+          name: postgresql:9.6
+          namespace: openshift
+        lastTriggeredImage: docker-registry.default.svc:5000/openshift/postgresql@sha256:0ffb77a9a3e5cb848ccc07d5a5384839a911e7eeb36988c6a4b51a389f62415a
+      type: ImageChange
+    - type: ConfigChange
+  status:
+    availableReplicas: 0
+    latestVersion: 0
+    observedGeneration: 0
+    replicas: 0
+    unavailableReplicas: 0
+    updatedReplicas: 0
+- apiVersion: route.openshift.io/v1
+  kind: Route
+  metadata:
+    annotations:
+      openshift.io/host.generated: "true"
+    creationTimestamp: null
+    labels:
+      app: gogs
+    name: gogs
+  spec:
+    host: gogs-user7-gogs.apps.4f28.openshift.opentlc.com
+    port:
+      targetPort: 3000-tcp
+    to:
+      kind: Service
+      name: gogs
+      weight: 100
+    wildcardPolicy: None
+  status:
+    ingress:
+    - conditions:
+      - lastTransitionTime: 2018-10-30T19:13:30Z
+        status: "True"
+        type: Admitted
+      host: gogs-user7-gogs.apps.4f28.openshift.opentlc.com
+      routerName: router
+      wildcardPolicy: None
+- apiVersion: image.openshift.io/v1
+  kind: ImageStream
+  metadata:
+    annotations:
+      openshift.io/image.dockerRepositoryCheck: 2018-10-30T19:08:46Z
+    creationTimestamp: null
+    generation: 2
+    labels:
+      app: gogs
+    name: gogs
+  spec:
+    lookupPolicy:
+      local: false
+    tags:
+    - annotations:
+        openshift.io/generated-by: OpenShiftWebConsole
+        openshift.io/imported-from: wkulhanek/gogs:11.34
+      from:
+        kind: DockerImage
+        name: docker-registry.default.svc:5000/user7-gogs/gogs:11.34
+      generation: 2
+      importPolicy: {}
+      name: "11.34"
+      referencePolicy:
+        type: Source
+  status:
+    dockerImageRepository: ""
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      openshift.io/generated-by: OpenShiftWebConsole
+    creationTimestamp: null
+    labels:
+      app: gogs
+    name: gogs
+  spec:
+    ports:
+    - name: 3000-tcp
+      port: 3000
+      protocol: TCP
+      targetPort: 3000
+    selector:
+      deploymentconfig: gogs
+    sessionAffinity: None
+    type: ClusterIP
+  status:
+    loadBalancer: {}
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      template.openshift.io/expose-uri: postgres://{.spec.clusterIP}:{.spec.ports[?(.name=="postgresql")].port}
+    creationTimestamp: null
+    labels:
+      template: postgresql-persistent-template
+      template.openshift.io/template-instance-owner: 1239d9c3-dc77-11e8-8a2b-06653b9385be
+    name: postgresql
+  spec:
+    ports:
+    - name: postgresql
+      port: 5432
+      protocol: TCP
+      targetPort: 5432
+    selector:
+      name: postgresql
+    sessionAffinity: None
+    type: ClusterIP
+  status:
+    loadBalancer: {}
+- apiVersion: v1
+  kind: PersistentVolumeClaim
+  metadata:
+    annotations:
+      pv.kubernetes.io/bind-completed: "yes"
+      pv.kubernetes.io/bound-by-controller: "yes"
+    creationTimestamp: null
+    finalizers:
+    - kubernetes.io/pvc-protection
+    name: gogs-storage
+  spec:
+    accessModes:
+    - ReadWriteMany
+    resources:
+      requests:
+        storage: 4Gi
+    volumeName: vol30
+  status: {}
+- apiVersion: v1
+  kind: PersistentVolumeClaim
+  metadata:
+    annotations:
+      pv.kubernetes.io/bind-completed: "yes"
+      pv.kubernetes.io/bound-by-controller: "yes"
+    creationTimestamp: null
+    finalizers:
+    - kubernetes.io/pvc-protection
+    labels:
+      template: postgresql-persistent-template
+      template.openshift.io/template-instance-owner: 1239d9c3-dc77-11e8-8a2b-06653b9385be
+    name: postgresql
+  spec:
+    accessModes:
+    - ReadWriteOnce
+    resources:
+      requests:
+        storage: 4Gi
+    volumeName: vol49
+  status: {}
+- apiVersion: v1
+  data:
+    DATABASE_SERVICE_NAME: cG9zdGdyZXNxbA==
+    MEMORY_LIMIT: NTEyTWk=
+    NAMESPACE: b3BlbnNoaWZ0
+    POSTGRESQL_DATABASE: cG9zdGdyZXNxbA==
+    POSTGRESQL_PASSWORD: cG9zdGdyZXNxbA==
+    POSTGRESQL_USER: cG9zdGdyZXNxbA==
+    POSTGRESQL_VERSION: OS42
+    VOLUME_CAPACITY: NEdp
+  kind: Secret
+  metadata:
+    creationTimestamp: null
+    name: 0ef93c17-dc77-11e8-89e2-0a580a01001c
+    ownerReferences:
+    - apiVersion: template.openshift.io/v1
+      blockOwnerDeletion: true
+      kind: BrokerTemplateInstance
+      name: 0ef93c17-dc77-11e8-89e2-0a580a01001c
+      uid: 0f3d9a28-dc77-11e8-8a2b-06653b9385be
+  type: Opaque
+- apiVersion: v1
+  data:
+    database-name: cG9zdGdyZXNxbA==
+    database-password: cG9zdGdyZXNxbA==
+    database-user: cG9zdGdyZXNxbA==
+  kind: Secret
+  metadata:
+    annotations:
+      template.openshift.io/expose-database_name: '{.data[''database-name'']}'
+      template.openshift.io/expose-password: '{.data[''database-password'']}'
+      template.openshift.io/expose-username: '{.data[''database-user'']}'
+    creationTimestamp: null
+    labels:
+      template: postgresql-persistent-template
+      template.openshift.io/template-instance-owner: 1239d9c3-dc77-11e8-8a2b-06653b9385be
+    name: postgresql
+  type: Opaque
+- apiVersion: v1
+  data:
+    parameters: eyJEQVRBQkFTRV9TRVJWSUNFX05BTUUiOiJwb3N0Z3Jlc3FsIiwiTUVNT1JZX0xJTUlUIjoiNTEyTWkiLCJOQU1FU1BBQ0UiOiJvcGVuc2hpZnQiLCJQT1NUR1JFU1FMX0RBVEFCQVNFIjoicG9zdGdyZXNxbCIsIlBPU1RHUkVTUUxfUEFTU1dPUkQiOiJwb3N0Z3Jlc3FsIiwiUE9TVEdSRVNRTF9VU0VSIjoicG9zdGdyZXNxbCIsIlBPU1RHUkVTUUxfVkVSU0lPTiI6IjkuNiIsIlZPTFVNRV9DQVBBQ0lUWSI6IjRHaSJ9
+  kind: Secret
+  metadata:
+    creationTimestamp: null
+    name: postgresql-persistent-parametersbmkz2
+    ownerReferences:
+    - apiVersion: servicecatalog.k8s.io/v1beta1
+      blockOwnerDeletion: false
+      controller: false
+      kind: ServiceInstance
+      name: postgresql-persistent-xvwkh
+      uid: 0ef93c84-dc77-11e8-89e2-0a580a01001c
+  type: Opaque
+- apiVersion: v1
+  data:
+    app.ini: |-
+      APP_NAME = Gogs
+      RUN_USER = gogs
+      RUN_MODE = prod
+
+      [database]
+      DB_TYPE  = postgres
+      HOST     = postgresql:5432
+      NAME     = postgresql
+      USER     = postgresql
+      PASSWD   = postgresql
+      SSL_MODE = disable
+      PATH     = data/gogs.db
+
+      [repository]
+      ROOT = /data/gogs-repositories
+
+      [server]
+      DOMAIN           = gogs-user7-gogs.apps.4f28.openshift.opentlc.com
+      HTTP_PORT        = 3000
+      ROOT_URL         = http://gogs-user7-gogs.apps.4f28.openshift.opentlc.com/
+      DISABLE_SSH      = false
+      SSH_PORT         = 22
+      START_SSH_SERVER = false
+      OFFLINE_MODE     = false
+
+      [mailer]
+      ENABLED = false
+
+      [service]
+      REGISTER_EMAIL_CONFIRM = false
+      ENABLE_NOTIFY_MAIL     = false
+      DISABLE_REGISTRATION   = false
+      ENABLE_CAPTCHA         = true
+      REQUIRE_SIGNIN_VIEW    = false
+
+      [picture]
+      DISABLE_GRAVATAR        = false
+      ENABLE_FEDERATED_AVATAR = true
+
+      [session]
+      PROVIDER = file
+
+      [log]
+      MODE      = file
+      LEVEL     = Info
+      ROOT_PATH = /opt/gogs/log
+
+      [security]
+      INSTALL_LOCK = true
+      SECRET_KEY   = GmJ3rv6aI2Afv77
+  kind: ConfigMap
+  metadata:
+    creationTimestamp: null
+    name: app-ini
