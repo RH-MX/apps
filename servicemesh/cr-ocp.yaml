@@ -1,0 +1,11 @@
+apiVersion: "istio.openshift.com/v1alpha1"
+kind: "Installation"
+metadata:
+  name: "istio-installation"
+spec:
+  deployment_type: openshift
+  kiali:
+    username: admin
+    password: r3dh4t1!
+    prefix: kiali/
+    version: v0.8.1

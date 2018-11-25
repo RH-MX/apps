@@ -1,0 +1,34 @@
+---
+- name: Update master-config.yaml on all masters
+  hosts: masters
+  become: true
+  tasks:
+  - name: Copy patch file to masters
+    copy:
+      src: /root/master-config.patch
+      dest: /etc/origin/master/master-config.patch
+      owner: root
+      group: root
+      mode: 0644
+  - name: Backup existing master-config.yaml file
+    copy:
+      remote_src: Yes
+      src: /etc/origin/master/master-config.yaml
+      dest: /etc/origin/master/master-config.yaml.prepatch
+  - name: Patch the master-config.yaml
+    shell: 'oc ex config patch /etc/origin/master/master-config.yaml.prepatch -p "$(cat /etc/origin/master/master-config.patch)" > /etc/origin/master/master-config.yaml'
+  - name: Restart masters
+    command: "/usr/local/bin/master-restart api && /usr/local/bin/master-restart controllers"
+- name: Update node configurations
+  hosts: nodes
+  become: true
+  tasks:
+  - name: Copy elasticsearch config file to nodes
+    copy:
+      src: /root/99-elasticsearch.conf
+      dest: /etc/sysctl.d/99-elasticsearch.conf
+      owner: root
+      group: root
+      mode: 0644
+  - name: Update running Node Kernels
+    command: sysctl vm.max_map_count=262144
