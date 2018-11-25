@@ -1,0 +1,337 @@
+apiVersion: template.openshift.io/v1
+kind: Template
+metadata:
+  creationTimestamp: null
+  name: user7-tasks-dev
+objects:
+- apiVersion: apps.openshift.io/v1
+  kind: DeploymentConfig
+  metadata:
+    annotations:
+      openshift.io/generated-by: OpenShiftNewApp
+    creationTimestamp: null
+    generation: 20
+    labels:
+      app: tasks
+    name: tasks
+  spec:
+    replicas: 1
+    revisionHistoryLimit: 10
+    selector:
+      app: tasks
+      deploymentconfig: tasks
+    strategy:
+      activeDeadlineSeconds: 21600
+      resources: {}
+      rollingParams:
+        intervalSeconds: 1
+        maxSurge: 25%
+        maxUnavailable: 25%
+        timeoutSeconds: 600
+        updatePeriodSeconds: 1
+      type: Rolling
+    template:
+      metadata:
+        annotations:
+          openshift.io/generated-by: OpenShiftNewApp
+        creationTimestamp: null
+        labels:
+          app: tasks
+          deploymentconfig: tasks
+      spec:
+        containers:
+        - image: docker-registry.default.svc:5000/user7-tasks-dev/tasks:6.4.0-RELEASE-1
+          imagePullPolicy: IfNotPresent
+          name: tasks
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          volumeMounts:
+          - mountPath: /opt/eap/standalone/configuration/application-users.properties
+            name: jboss-config
+            subPath: application-users.properties
+          - mountPath: /opt/eap/standalone/configuration/application-roles.properties
+            name: jboss-config1
+            subPath: application-roles.properties
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        terminationGracePeriodSeconds: 30
+        volumes:
+        - configMap:
+            defaultMode: 420
+            name: tasks-config
+          name: jboss-config
+        - configMap:
+            defaultMode: 420
+            name: tasks-config
+          name: jboss-config1
+    test: false
+    triggers: []
+  status:
+    availableReplicas: 0
+    latestVersion: 0
+    observedGeneration: 0
+    replicas: 0
+    unavailableReplicas: 0
+    updatedReplicas: 0
+- apiVersion: route.openshift.io/v1
+  kind: Route
+  metadata:
+    annotations:
+      openshift.io/host.generated: "true"
+    creationTimestamp: null
+    labels:
+      app: tasks
+    name: tasks
+  spec:
+    host: tasks-user7-tasks-dev.apps.4f28.openshift.opentlc.com
+    port:
+      targetPort: 8080
+    to:
+      kind: Service
+      name: tasks
+      weight: 100
+    wildcardPolicy: None
+  status:
+    ingress:
+    - conditions:
+      - lastTransitionTime: 2018-11-01T15:24:26Z
+        status: "True"
+        type: Admitted
+      host: tasks-user7-tasks-dev.apps.4f28.openshift.opentlc.com
+      routerName: router
+      wildcardPolicy: None
+- apiVersion: image.openshift.io/v1
+  kind: ImageStream
+  metadata:
+    annotations:
+      openshift.io/generated-by: OpenShiftNewBuild
+      openshift.io/image.dockerRepositoryCheck: 2018-11-01T15:23:50Z
+    creationTimestamp: null
+    generation: 18
+    labels:
+      build: tasks
+    name: tasks
+  spec:
+    lookupPolicy:
+      local: false
+    tags:
+    - annotations: null
+      from:
+        kind: DockerImage
+        name: docker-registry.default.svc:5000/user7-tasks-dev/tasks:6.4.0-RELEASE
+      generation: 18
+      importPolicy: {}
+      name: 6.4.0-RELEASE
+      referencePolicy:
+        type: Source
+    - annotations: null
+      from:
+        kind: DockerImage
+        name: docker-registry.default.svc:5000/user7-tasks-dev/tasks:6.4.0-RELEASE-1
+      generation: 17
+      importPolicy: {}
+      name: 6.4.0-RELEASE-1
+      referencePolicy:
+        type: Source
+    - annotations: null
+      from:
+        kind: DockerImage
+        name: docker-registry.default.svc:5000/user7-tasks-dev/tasks:6.4.0-RELEASE-10
+      generation: 11
+      importPolicy: {}
+      name: 6.4.0-RELEASE-10
+      referencePolicy:
+        type: Source
+    - annotations: null
+      from:
+        kind: DockerImage
+        name: docker-registry.default.svc:5000/user7-tasks-dev/tasks:6.4.0-RELEASE-14
+      generation: 13
+      importPolicy: {}
+      name: 6.4.0-RELEASE-14
+      referencePolicy:
+        type: Source
+    - annotations: null
+      from:
+        kind: DockerImage
+        name: docker-registry.default.svc:5000/user7-tasks-dev/tasks:6.4.0-RELEASE-15
+      generation: 15
+      importPolicy: {}
+      name: 6.4.0-RELEASE-15
+      referencePolicy:
+        type: Source
+    - annotations: null
+      from:
+        kind: DockerImage
+        name: docker-registry.default.svc:5000/user7-tasks-dev/tasks:6.4.0-RELEASE-5
+      generation: 4
+      importPolicy: {}
+      name: 6.4.0-RELEASE-5
+      referencePolicy:
+        type: Source
+    - annotations: null
+      from:
+        kind: DockerImage
+        name: docker-registry.default.svc:5000/user7-tasks-dev/tasks:6.4.0-RELEASE-6
+      generation: 5
+      importPolicy: {}
+      name: 6.4.0-RELEASE-6
+      referencePolicy:
+        type: Source
+    - annotations: null
+      from:
+        kind: DockerImage
+        name: docker-registry.default.svc:5000/user7-tasks-dev/tasks:6.4.0-RELEASE-7
+      generation: 6
+      importPolicy: {}
+      name: 6.4.0-RELEASE-7
+      referencePolicy:
+        type: Source
+    - annotations: null
+      from:
+        kind: DockerImage
+        name: docker-registry.default.svc:5000/user7-tasks-dev/tasks:6.4.0-RELEASE-8
+      generation: 7
+      importPolicy: {}
+      name: 6.4.0-RELEASE-8
+      referencePolicy:
+        type: Source
+    - annotations: null
+      from:
+        kind: DockerImage
+        name: docker-registry.default.svc:5000/user7-tasks-dev/tasks:6.4.0-RELEASE-9
+      generation: 9
+      importPolicy: {}
+      name: 6.4.0-RELEASE-9
+      referencePolicy:
+        type: Source
+    - annotations: null
+      from:
+        kind: DockerImage
+        name: docker-registry.default.svc:5000/user7-tasks-dev/tasks:latest
+      generation: null
+      importPolicy: {}
+      name: latest
+      referencePolicy:
+        type: ""
+  status:
+    dockerImageRepository: ""
+- apiVersion: v1
+  kind: Service
+  metadata:
+    creationTimestamp: null
+    labels:
+      app: tasks
+    name: tasks
+  spec:
+    ports:
+    - port: 8080
+      protocol: TCP
+      targetPort: 8080
+    selector:
+      app: tasks
+      deploymentconfig: tasks
+    sessionAffinity: None
+    type: ClusterIP
+  status:
+    loadBalancer: {}
+- apiVersion: build.openshift.io/v1
+  kind: BuildConfig
+  metadata:
+    annotations:
+      openshift.io/generated-by: OpenShiftNewBuild
+    creationTimestamp: null
+    labels:
+      build: tasks
+    name: tasks
+  spec:
+    failedBuildsHistoryLimit: 5
+    nodeSelector: null
+    output:
+      to:
+        kind: ImageStreamTag
+        name: tasks:latest
+    postCommit: {}
+    resources: {}
+    runPolicy: Serial
+    source:
+      binary: {}
+      type: Binary
+    strategy:
+      sourceStrategy:
+        from:
+          kind: ImageStreamTag
+          name: jboss-eap71-openshift:1.3
+          namespace: openshift
+      type: Source
+    successfulBuildsHistoryLimit: 5
+    triggers:
+    - github:
+        secret: CIV7DbNpEG4d07wOE0NL
+      type: GitHub
+    - generic:
+        secret: WU1fOjAFya79yYeuIZq5
+      type: Generic
+  status:
+    lastVersion: 0
+- apiVersion: v1
+  data:
+    application-roles.properties: |
+      #
+      # Properties declaration of users roles for the realm 'ApplicationRealm' which is the default realm
+      # for application services on a new installation.
+      #
+      # This includes the following protocols: remote ejb, remote jndi, web, remote jms
+      #
+      # Users can be added to this properties file at any time, updates after the server has started
+      # will be automatically detected.
+      #
+      # The format of this file is as follows: -
+      # username=role1,role2,role3
+      #
+      # A utility script is provided which can be executed from the bin folder to add the users: -
+      # - Linux
+      #  bin/add-user.sh
+      #
+      # - Windows
+      #  bin\add-user.bat
+      #
+      # The following illustrates how an admin user could be defined.
+      #
+      #admin=PowerUser,BillingAdmin,
+      #guest=guest
+      redhat=guest
+    application-users.properties: |
+      #
+      # Properties declaration of users for the realm 'ApplicationRealm' which is the default realm
+      # for application services on a new installation.
+      #
+      # This includes the following protocols: remote ejb, remote jndi, web, remote jms
+      #
+      # Users can be added to this properties file at any time, updates after the server has started
+      # will be automatically detected.
+      #
+      # The format of this realm is as follows: -
+      # username=HEX( MD5( username ':' realm ':' password))
+      #
+      # A utility script is provided which can be executed from the bin folder to add the users: -
+      # - Linux
+      #  bin/add-user.sh
+      #
+      # - Windows
+      #  bin\add-user.bat
+      #
+      #$REALM_NAME=ApplicationRealm$ This line is used by the add-user utility to identify the realm name already used in this file.
+      #
+      # The following illustrates how an admin user could be defined, this
+      # is for illustration only and does not correspond to a usable password.
+      #
+      #admin=2a0923285184943425d1f53ddd58ec7a
+      redhat=a61461431d8a3a52ea041ea5d25dcbc2
+  kind: ConfigMap
+  metadata:
+    creationTimestamp: null
+    name: tasks-config
