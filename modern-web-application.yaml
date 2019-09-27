@@ -6,7 +6,7 @@ metadata:
     iconClass: icon-jboss
     tags: nodejs, react, web app
     template.openshift.io/provider-display-name: "Red Hat, Inc."
-    description: Modern Web Applications: NodeJS, Angular & React
+    description: Modern Web Applications
 labels:
   application: modern-web-app
 parameters:
@@ -31,9 +31,8 @@ parameters:
     value: build
     required: false
   - name: YARN_ENABLED
-    description: If YARN is enabled. For example, in React applications YARN is required (true)
-    displayName: enable YARN
-    value: false
+    description: If YARN is enabled
+    displayName: Enable YARN
     required: false
   - name: GITHUB_WEBHOOK_SECRET
     description: A secret string used to configure the GitHub webhook.
